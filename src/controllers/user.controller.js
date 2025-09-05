@@ -109,4 +109,4 @@ const updateUserProfile= asyncHandler(async(req,res)=>{
     })
 })
 
-export { registerUser,loginUser,getUserProfile };
+export { registerUser,loginUser,getUserProfile,updateUserProfile};
