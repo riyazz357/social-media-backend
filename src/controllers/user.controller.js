@@ -1,6 +1,8 @@
 
 import { User } from '../models/user.model.js'; 
 import { asyncHandler } from '../utils/asyncHandler.js'; 
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const registerUser = asyncHandler(async (req, res) => {
     //Get user details from the request body
@@ -35,4 +37,50 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { registerUser };
+const loginUser= asyncHandler(async(req,res)=>{
+        const {email,password}=req.body
+
+        if(!email || !password){
+            return res
+            .status(400)
+            .json({message:"both are required field!!"})
+
+        }
+
+        const user= await User.findOne({email})
+
+        if(!user){
+            return res
+            .status(404)
+            .json({message:"not registered user!!!",error:error.message})
+        }
+
+        const isPassword=await bcrypt.compare(password,user.password)
+        if(!isPassword){
+            return res
+            .status(401)
+            .json({message:"enter the correct password",error:error.message})
+        }
+
+        const token=jwt.sign(
+            {_id:user._id},
+            process.env.JWT_SECRET,
+            {expiresIn:'1d'}
+        )
+        //get user object and remove the password field
+        const loggedInUser=user.toObject();
+        delete loggedInUser.password()
+
+        return res
+        .status(200)
+        .json({message:"user logged in successfully",
+            user:loggedInUser,
+            token:token
+        })
+        
+
+    
+    
+
+})
+export { registerUser,loginUser };
