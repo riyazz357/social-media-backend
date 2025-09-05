@@ -69,7 +69,7 @@ const loginUser= asyncHandler(async(req,res)=>{
         )
         //get user object and remove the password field
         const loggedInUser=user.toObject();
-        delete loggedInUser.password()
+        delete loggedInUser.password;
 
         return res
         .status(200)
@@ -77,10 +77,36 @@ const loginUser= asyncHandler(async(req,res)=>{
             user:loggedInUser,
             token:token
         })
-        
+})
 
-    
-    
+const getUserProfile=asyncHandler(async(req,res)=>{
+
+    const user= await User.findById(_id)
+    const userProfile=user.toObject();
+    delete userProfile.password;
+    return res
+    .status(200)
+    .json({
+        message:"user profile fetched successfully",
+        userProfile:userProfile
+    })
 
 })
-export { registerUser,loginUser };
+
+const updateUserProfile= asyncHandler(async(req,res)=>{
+    const{firstName,lastName,bio}=req.body
+    const updateUser=await User.findByIdAndUpdate(req.user._id,{
+        $set:{
+            firstName,
+            lastName,
+            bio
+        }
+    },{new:true}).select('-password');
+    return res
+    .status(200)
+    .json({message:"user updated successfully",
+        user:updateUser
+    })
+})
+
+export { registerUser,loginUser,getUserProfile };
