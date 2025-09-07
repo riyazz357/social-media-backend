@@ -172,5 +172,41 @@ const searchUsers= asyncHandler(async(req,res)=>{
     
 })
 
+//changes the password of user
+const changePassword= asyncHandler(async(req,res)=>{
+    
+    const {oldPssword,newPaswword}=req.body;
 
-export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers,updateProfilePicture};
+    if(!oldPssword || !newPaswword){
+        return res
+        .status(400)
+        .json({message:"enter the both password"})
+    }
+
+    const user= await User.findById(req.user?._id)
+    if(!user){
+        return res
+        .status(404)
+        .json({message:'user not found'});
+    }
+
+
+    const isPasswordCorrect= await bcrypt.compare(oldPssword,user.password)
+    if(!isPasswordCorrect){
+        return res
+        .status(402)
+        .json({message:"enter the right password"})
+    }
+
+    user.password=newPaswword
+
+    await user.save({validateBeforeSave:false});
+
+    return res
+    .status(200)
+    .json({message:"password updaetd successfully"})
+})
+
+
+
+export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers,updateProfilePicture,changePassword};
