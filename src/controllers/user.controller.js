@@ -79,6 +79,7 @@ const loginUser= asyncHandler(async(req,res)=>{
         })
 })
 
+// get user profile details
 const getUserProfile=asyncHandler(async(req,res)=>{
 
     const user= await User.findById(_id)
@@ -93,6 +94,7 @@ const getUserProfile=asyncHandler(async(req,res)=>{
 
 })
 
+// update user profile details
 const updateUserProfile= asyncHandler(async(req,res)=>{
     const{firstName,lastName,bio}=req.body
     const updateUser=await User.findByIdAndUpdate(req.user._id,{
@@ -109,6 +111,31 @@ const updateUserProfile= asyncHandler(async(req,res)=>{
     })
 })
 
+//search for the user 
+
+const searchUsers= asyncHandler(async(req,res)=>{
+    const {query}=req.body
+
+    if(!query){
+        return res
+        .status(400)
+        .json({message:"search query is required"});
+    }
+    // Case sensitive regular expression from query
+    const searchRegex= new RegExp(query,'i');
+
+    const users= await User.find({
+        $or:[
+            {firstName:{$regex:searchRegex}},
+            {lastName:{$regex:searchRegex}}
+        ]
+    }).select("-password")
+
+    return res
+    .status(200)
+    .json({message:"user found successfully",users})
+    
+})
 
 
-export { registerUser,loginUser,getUserProfile,updateUserProfile};
+export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers};
