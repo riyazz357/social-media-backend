@@ -1,5 +1,6 @@
 
 import { User } from '../models/user.model.js'; 
+import {Friendship} from '../model/user.models.js'
 import uploadOnCloudinary from '../utilities/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js'; 
 import bcrypt from 'bcrypt';
@@ -174,7 +175,7 @@ const searchUsers= asyncHandler(async(req,res)=>{
 
 //changes the password of user
 const changePassword= asyncHandler(async(req,res)=>{
-    
+
     const {oldPssword,newPaswword}=req.body;
 
     if(!oldPssword || !newPaswword){
@@ -206,6 +207,44 @@ const changePassword= asyncHandler(async(req,res)=>{
     .status(200)
     .json({message:"password updaetd successfully"})
 })
+
+//send the frined request
+
+const sendFriendRequest= asyncHandler(async(req,res)=>{
+
+    const {recipientId}=req.params;
+    const requesterId=req.user._id;
+    
+    if(requesterId.toString()===recipientId){
+        return res
+        .status(400)
+        .json({message:"you cannot send a friend request to yourself"})
+    }
+
+    const existingFriednship= await Friendship.findOne({
+        $or:[
+            {requester: requesterId,recipient:recipientId},
+            {requester:recipientId,recipient:requesterId}
+        ]
+    })
+    if(existingFriednship){
+        return res
+        .status(400)
+        .json({message:" A friend request is already exist or you are already friends"})
+    }
+
+    //create a new friend request
+    await Friendship.create({
+        requester:requesterId,
+        recipient:recipientId,
+        status:'pending',
+    })
+
+    return res
+    .status(201)
+    .json({message:"request sent successfully"})
+})
+
 
 
 
