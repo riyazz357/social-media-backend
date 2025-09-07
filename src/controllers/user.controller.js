@@ -245,7 +245,63 @@ const sendFriendRequest= asyncHandler(async(req,res)=>{
     .json({message:"request sent successfully"})
 })
 
+// responnd to the friendrequet
+
+const respondToFriendRequest= asyncHandler(async(req,res)=>{
+    const {frriendshipId}= req.params;
+    const {action}= req.body; //action or decline
+    const recipientId=req.user._id
+
+    if(!['accept','decline'].includes(action)){
+        return res
+        .status(400)
+        .json({message:"Invalid action. Must be accept or decline."})
+    }
+
+    const friendship = await Friendship.findById(frriendshipId);
+
+    if(!friendship || friendship.status !== 'pending' || friendship.recipient.toString()!==recipientId.toString()){
+        return res
+        .status(404)
+        .json({message:"friend request not found or you ar not auhtorized to respond"})
+    }
+
+    if(action === 'accept'){
+        friendship.status='accepted';
+        await friendship.save()
+
+        await User.findByIdAndUpdate(recipientId,{
+        $addToSet:{friends:friendship.requester}
+    });
+
+    await User.findByIdAndUpdate(friendship.requester,{
+        $addToSet:{friends:recipientId}});
+
+        return res
+        .status(200)
+        .json({message:"Friend request accepted"})
+    }
+    else{
+        await Friendship.findByIdAndDelete(frriendshipId);
+        return res
+        .status(200)
+        .json({message:"frined request declined"})
+    }
+})
+
+//remove the friendddd
 
 
 
-export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers,updateProfilePicture,changePassword};
+
+export { 
+    registerUser,
+    loginUser,
+    getUserProfile,
+    updateUserProfile,
+    searchUsers,
+    updateProfilePicture,
+    changePassword,
+    sendFriendRequest,
+    respondToFriendRequest
+};
