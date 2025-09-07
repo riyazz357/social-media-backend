@@ -1,5 +1,6 @@
 
 import { User } from '../models/user.model.js'; 
+import uploadOnCloudinary from '../utilities/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js'; 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -111,6 +112,40 @@ const updateUserProfile= asyncHandler(async(req,res)=>{
     })
 })
 
+//update the user profile
+
+const updateProfilePicture = asyncHandler(async(req,res)=>{
+        const ppLocalPath=req.file?.path;
+
+        if(!ppLocalPath){
+            return res
+            .status(400)
+            .json({message:"Profile picture file is missing"})
+        }
+
+        const profilePicture= await uploadOnCloudinary(ppLocalPath)
+        if(!profilePicture){
+            return res
+            .status(500)
+            .json({message:"Error while uploading picture"})
+        }
+
+        const user= await User.findByIdAndUpdate(
+            req.user?._id,
+            {
+                $set:{
+                    profilePicture:profilePicture.url,
+                }
+            },
+            {new:true}
+        ).select("-password");
+
+        return res
+        .status(200)
+        .json({message:"profile picture updated successfully",user})
+})
+
+
 //search for the user 
 
 const searchUsers= asyncHandler(async(req,res)=>{
@@ -138,4 +173,4 @@ const searchUsers= asyncHandler(async(req,res)=>{
 })
 
 
-export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers};
+export { registerUser,loginUser,getUserProfile,updateUserProfile,searchUsers,updateProfilePicture};
