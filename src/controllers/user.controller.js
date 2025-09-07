@@ -5,6 +5,7 @@ import uploadOnCloudinary from '../utilities/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js'; 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { request } from 'express';
 
 const registerUser = asyncHandler(async (req, res) => {
     //Get user details from the request body
@@ -290,7 +291,31 @@ const respondToFriendRequest= asyncHandler(async(req,res)=>{
 })
 
 //remove the friendddd
+const removeFriend= asyncHandler(async(req,res)=>{
+    const {friendId}=req.params;
+    const userId=req.user._id;
 
+    const friendship = await Friendship.findByIdAndDelete({
+        status:'accepted',
+        $or:[
+            {requester:userId,recipient:friendId},
+            {requester:friendId,recipient:userId},
+        ],
+    })
+
+    if(!friendship){
+        return res
+        .status(404)
+        .json({message:" friendship not found.."})
+    }
+
+    await User.findByIdAndUpdate(userId,{$pull:{friends:friendId}});
+    await User.findByIdAndUpdate(friendId,{$pull:{friends:userId}});
+
+    return res
+    .status(200)
+    .json({message:"Frineds removed succesfully!!"})
+})
 
 
 
@@ -303,5 +328,6 @@ export {
     updateProfilePicture,
     changePassword,
     sendFriendRequest,
-    respondToFriendRequest
+    respondToFriendRequest,
+    removeFriend
 };
