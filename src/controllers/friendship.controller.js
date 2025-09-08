@@ -132,9 +132,30 @@ const getFriendList= asyncHandler(async(req,res)=>{
 
 })
 
+// Get pending Friend Request
+
+const getPendingRequest= asyncHandler(async(req,res)=>{
+    const userId= req.user._id;
+
+    const request= await Friendship.find({
+        recipient:userId,
+        status:'pending'
+    }).populate("requester","firstNmae lastName profilePicture")
+
+    return res
+    .status(200)
+    .json({message:"Pending request fetched successfully",
+        request
+    })
+})
+
+
+
+
 export{
     sendFriendRequest,
     respondToFriendRequest,
     removeFriend,
-    getFriendList
+    getFriendList,
+    getPendingRequest,
 }
