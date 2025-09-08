@@ -1,5 +1,7 @@
 //send the frined request
 
+import { User } from "../model/user.models";
+
 const sendFriendRequest= asyncHandler(async(req,res)=>{
 
     const {recipientId}=req.params;
@@ -106,8 +108,33 @@ const removeFriend= asyncHandler(async(req,res)=>{
     .json({message:"Frineds removed succesfully!!"})
 })
 
+//Get a user's frined list
+
+const getFriendList= asyncHandler(async(req,res)=>{
+
+    const user= await User.findById(req.user._id).populate(
+        'friends',
+        'firstName lastName profilePicture'
+    );
+
+    if(!user){
+        return res
+        .status(404)
+        .json({message:"User not found"});
+    }
+
+    return res
+    .status(200)
+    .json({message:"Friend list fetched successfully!!",
+        friends:user.friends,
+    })
+
+
+})
+
 export{
     sendFriendRequest,
     respondToFriendRequest,
-    removeFriend
+    removeFriend,
+    getFriendList
 }
