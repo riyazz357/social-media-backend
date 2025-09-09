@@ -209,6 +209,10 @@ const changePassword= asyncHandler(async(req,res)=>{
     .json({message:"password updaetd successfully"})
 })
 
+const getUserPost=asyncHandler(async(req,res)=>{
+    
+}
+
 
 export { 
     registerUser,
