@@ -5,6 +5,7 @@ import uploadOnCloudinary from '../utilities/cloudinary.js';
 import { asyncHandler } from '../utils/asyncHandler.js'; 
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import {Post} from '../model/post.models.js';
 import { request } from 'express';
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -210,9 +211,20 @@ const changePassword= asyncHandler(async(req,res)=>{
 })
 
 const getUserPost=asyncHandler(async(req,res)=>{
-    
-}
+    const {userId}=req.params;
+    const posts= await Post.find({author:userId}).sort({ createdAt:-1});
 
+    if(!posts){
+        return res
+        .status(404)
+        .json({message:" No posts foind for this user"});
+    }
+    return res
+    .status(200)
+    .json({message:"user post fetched successfully!!",posts});
+
+}
+)
 
 export { 
     registerUser,
@@ -222,4 +234,5 @@ export {
     searchUsers,
     updateProfilePicture,
     changePassword,
+    getUserPost
 };
