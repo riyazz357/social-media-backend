@@ -81,7 +81,34 @@ const  updatePost = asyncHandler(async(req,res)=>{
     .json({message:"Post updated successfully",post,});
 })
 
+// deleting the post
+const deletePost= asyncHandler(async(req,res)=>{
+    const {postId}= req.params;
+    const userId=req.user._id;
+
+    const post =await Post.findById(postId);
+
+    if(!post){
+        return res
+        .status(404)
+        .json({message:"Post not found!!"})
+    }
+
+    if(post.author.toString()!==userId.toString()){
+        return res
+        .status(403)
+        .json({message:"Forbidden: you are not authorized to delete this post.."})
+    }
+    await Post.findByIdAndDelete(postId);
+
+    return res
+    .status(200)
+    .json({message:"Post deleted successfully!!!!"});
+})
+
 export {
     getPostById,
-    createPost
+    createPost,
+    updatePost,
+    deletePost,
 }
