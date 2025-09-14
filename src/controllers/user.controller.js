@@ -225,6 +225,41 @@ const getUserPost=asyncHandler(async(req,res)=>{
 
 }
 )
+//get the news feed
+
+const getNewsFeed= asyncHandler(async(req,res)=>{
+    const user= await User.findById(req.user._id);
+    const friendId=user.friends;
+    const userAndFriendIds=[req.query._id,...friendId];
+
+    //handle pagination
+    const page=parseInt(req.query.page) || 1;
+    const limit=parseInt(req.query.limit) || 10;
+    const skip=(page-1)*limit;
+
+    const feedPosts = await Post.find({
+        author:{
+            $in:userAndFriendIds
+        }
+    }).sort({createdAt:-1})
+    .skip(skip)
+    .limit(limit)
+    .populate("author","firstName lastName profilePicture")
+
+    const totalPosts= await Post.countDocuments({author:{$in:userAndFriendIds}});
+
+    return res
+    .status(200)
+    .json({
+        message:"News feed fetched Successfully",
+        posts:feedPosts,
+        pagination:{
+            totalPosts:Math.ceil(totalPosts/limit),
+            currentPage:page,
+        }
+    })
+
+})
 
 export { 
     registerUser,
@@ -234,5 +269,6 @@ export {
     searchUsers,
     updateProfilePicture,
     changePassword,
-    getUserPost
+    getUserPost,
+    getNewsFeed
 };
