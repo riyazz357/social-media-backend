@@ -53,6 +53,35 @@ const getPostById= asyncHandler(async(req,res)=>{
 })
 
 
+// Update the post 
+const  updatePost = asyncHandler(async(req,res)=>{
+    const {postId}=req.params;
+    const {content}=req.body;
+    const userId=req.user._id;
+
+    const post= await Post.findById(postId);
+
+    if(!post){
+        return res
+        .status(404)
+        .json({message:"Post not found"});
+    }
+    //ensuring the user updating the post is the original author
+    if(post.author.toString!==userId.toString){
+        return res
+        .status(403)
+        .json({message:"Forbiddedn: you are not authorized to update this post"})
+    }
+
+    post.content=content;
+    await post.save();
+
+    return res
+    .status(200)
+    .json({message:"Post updated successfully",post,});
+})
+
 export {
-    getPostById
+    getPostById,
+    createPost
 }
